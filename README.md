@@ -45,3 +45,51 @@
    - Bottom-up : 가장 최하위에 있는 작업부터 상위 작업까지 역순으로 보여줌.
    - Call Tree : Bottom up의 반대, 가장 상위 작업에서 하위 작업 순으로 내용을 Tree view로 보여줌.
    - Event log : Loading, Experience Scripting, Rendering, Painting등을 보여줌
+
+### 코드 분할 & 지연 로딩
+
+- chunk.js의 코드를 보기위해 wabpack-bundle-analyzer로 확인한다. (cra프로젝트인 경우 cra-bundle-analyzer로 webpack overriding없이 확인 가능)
+  react-syntax-highlighter 모듈이 크기가 큼 (refractor를 사용하기 때문)
+  마크다운을 필요로하는 모듈은 상세 페이지에서만 필요하지 목록 페이지에서는 react-syntax-highlighter를 다운할 필요가없다.
+
+- 코드분할 이란?
+
+  - 하나의 번들 파일을 여러개의 파일로 쪼개는 방법 (코드를 분리하여 해당 코드가 필요하는 시점에만 로드 시킴. -> 지연로딩)
+  - 예) bundle.js(ListPage, ViewPage) --> ListPage.Chunk.js(ListPage), ViewPage.chunk.js(ViewPage)
+  - 페이지별로 코드를 분할할 수도 있지만, 모듈이 많고 사이즈가 큰경우 모듈별로 분할 할 수 도있음. (불필요한 코드 또는 중복되는 코드 없이 적절한 사이즈의 코드가 적절한 타이밍에 로드되도록 하자 !!)
+
+- 적용하기
+
+  1. 동적 import
+
+  ```javascript
+  //원래 import
+  import { add } from './math';
+  console.log(`1 + 4 =`, add(1, 4));
+
+  //동적 import
+  import('add').then(module => {
+    const { add } = modlue;
+    console.log('1 + 4 =', add(1, 4));
+  });
+  ```
+
+  1-1. React에서의 컴포넌트 동적 import(lazy, suspense)
+
+  ```javascript
+  import React, { Suspense } from 'react';
+
+  const SomeComponent = React.lazy(() => import('./SomeComponent));
+
+  function MyComponent() {
+      return (
+          <div>
+            <Suspense fallback={<div>Loading...</div>}>
+                <SomeComponent />
+            </Suspense>
+          </div>
+      );
+  }
+  ```
+
+  - lazy로 동적 import후 Suspense로 감싸지않으면 error가 나옴. (React18에서도 똑같이 동작할지는 잘모르겟다... 알아봐야할듯!?)
