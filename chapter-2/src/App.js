@@ -1,4 +1,4 @@
-import React, { lazy, Suspense, useState } from 'react';
+import React, { lazy, Suspense, useEffect, useState } from 'react';
 import styled from 'styled-components';
 import Header from './components/Header';
 import InfoTable from './components/InfoTable';
@@ -12,6 +12,16 @@ const LazyImageModal = lazy(() => import('./components/ImageModal'));
 function App() {
   const [showModal, setShowModal] = useState(false);
 
+  /** 1. 마우스오버 할 때 사전로딩 */
+  const handleMouseEnter = () => {
+    const modalComponent = import('./components/ImageModal');
+  };
+
+  /** 2. 모든 컴포넌트들의 마운트가 끝난 후 사전로딩 */
+  useEffect(() => {
+    const modalComponent = import('./components/ImageModal');
+  }, []);
+
   return (
     <div className="App">
       <Header />
@@ -20,6 +30,7 @@ function App() {
         onClick={() => {
           setShowModal(true);
         }}
+        // onMouseEnter={handleMouseEnter}
       >
         올림픽 사진 보기
       </ButtonModal>
