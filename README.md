@@ -181,7 +181,9 @@ img.src =
 -   모달의 가장 첫번째 이미지를 미리 사전로딩 해놓는다.
     (몇개의 리소스를 사전 로딩 해놓냐는 고민을 해야한다. 왜냐하면, 사전로딩을 하는건 그만큼 브라우저의 리소스를 많이 사용하는 것이기 때문에 성능 문제를 야기할 수 있다.)
 
-### 이미지 지면 로딩
+---
+
+### 이미지 지연 로딩
 
     - intersection observer
         - 브라우저에서 제공하는 API. 페이지 스크롤시, 해당 요소가 화면에 들어왔는지 아닌지 알려준다. 즉, 스크롤할 때마다 함수를 호출하는 것이 아닌 요소가 화면에 들어왔을 때만 호출한다. (addEventLisener scroll 보다 최적화좋음)
@@ -221,9 +223,29 @@ img.src =
 
             <!-- 이미지 포맷에 따른 구분 -->
             <picture>
-                <source srcset="photo.avif" type="image/avif">
+                <source srcset="ph oto.avif" type="image/avif">
                 <source srcset="photo.webp" type="image/webp">
                 <img src="photo.jpg" alt="photo">
             </picture>
             ```
         - type="image/not-support"를 하면 브라우저에서 지원하지 않는 타입으로 설정된다.
+
+### 동영상 최적화
+
+    - 동영상은 이미지처럼 한번의 요청으로 모든것이 다운되지 않는다. (여러번의 요청을 통해 다운받음. Network탭 확인)
+
+    - 동영상 압축
+        - 이미지와 비슷하게 가로와 세로 사이즈를 줄이고 압축 방식을 변경하여 동영상의 용량을 줄인다.
+
+    - 압축 적용
+    ```javascript
+    <video className="cls" autoPlay loop muted>
+        <source src={video_webm} type="video/webm" />
+        <source src={video} type="video/mp4" />
+    </video>
+    ```
+
+    - 동영상 압축후 저화된 화질을 보완하는 방법.
+        - 압축을 하면 사이즈가 작아져 최적화는 좋지만, 화질저하를 막을수없다.
+          그러므로 패턴이나 필터를 넣어 저화된 화질을 보완해볼 수 있다.
+          ex) filter: blur(10px)

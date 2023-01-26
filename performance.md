@@ -9,3 +9,5 @@
 6. PurgeCSS (불필요한 css 제거)
     - 사용하지않는 CSS를 제거해주는 툴이다.
       npm에 등록되어있으며 CLI를 통해 실행할 수도있고 webpack에 등록하여 플러그인으로 사용할 수 도있다.
+7. midea.io (동영상 압축)
+    - 이 도구를 이용하여 간단하게 웹페이지에서 동영상을 압축 할 수있다. (Tool -> Viedo Compressor)
