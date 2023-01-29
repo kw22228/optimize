@@ -1,12 +1,23 @@
 .react-player iframe {
-	height: 100% !important;
+  height: 100% !important;
 }
 
 @font-face {
-	font-family: BMYEONSUNG;
-	src: url('./assets/fonts/BMYEONSUNG.ttf');
+  font-family: BMYEONSUNG;
+  /* src: url('./assets/fonts/BMYEONSUNG.ttf'); */
+
+  /* 폰트 사이즈 최적화 (woff, woff2) */
+  /* src: url('./assets/fonts/BMYEONSUNG.woff2') format('woff2'),
+    url('./assets/fonts/BMYEONSUNG.woff') format('woff'),
+    url('./assets/fonts/BMYEONSUNG.ttf') format('truetype'); */
+
+  /* 서브셋 폰트 사용하기 */
+  src: url('./assets/fonts/subset/subset-BMYEONSUNG.woff2') format('woff2'),
+    url('./assets/fonts/subset/subset-BMYEONSUNG.woff') format('woff'),
+    url('./assets/fonts/subset/subset-BMYEONSUNG.ttf') format('truetype');
+  font-display: block;
 }
 
 .BannerVideo {
-	font-family: 'BMYEONSUNG', sans-serif;
+  font-family: 'BMYEONSUNG', sans-serif;
 }
