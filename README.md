@@ -365,7 +365,7 @@ const header = {
     // res.setHeader('Pragma', 'no-cache')
 
     /** 캐시를 사용하기 위한 코드 */
-    res.setHeader('Cache-Control', 'max-age=10');
+    // res.setHeader('Cache-Control', 'max-age=10');
 
     /** 캐시를 각각 다른파일 리소스에 적절한 유효시간을 주기 */
     if (path.endsWith('.html')) {
@@ -381,3 +381,32 @@ const header = {
   },
 };
 ```
+
+### 불필요한 CSS제거
+
+- 불필요한 코드 확인
+
+  - 익스텐션 -> 메뉴 -> More Tools -> Coverage 내에서 새로고침을 하면
+    Unused Bytes와 Usage Visualization으로 사용되지 않는 코드 비율을 볼 수 있다. (파란막대: 코드 사용, 빨간막대: 코드 실행 x)
+
+- PurgeCSS
+  - 사용하지 않는 CSS코드를 제거해주는 툴.
+  - 파일에 들어있는 모든 키워드를 추출하여 해당 키워드만 이름으로 갖는 CSS 클래스만 보존하고 매칭되지 않는 클래스는 제거한다.
+
+```html
+<figure class="bg-slate-100 rounded-x p-8">
+  <div class="pt-6 space-y-4">PurgeCSS</div>
+</figure>
+
+추출되는 키워드 : figure, class, bg-slate-100, rounded-x p-8, pt-6, space-y-4
+```
+
+- 사용법(CLI)
+
+  - npm i -D purgecss
+  - purgecss -css ./build/static/css/\*.css --output ./build/static/css/ --content ./build/index.html ./build/static/js/\*.js
+
+- 주의 사항
+  - class명에 : 이나 - 같은 특수문자가 있는경우 키워드를 제대로 추출못할 수도 있다.
+    그렇기 때문에 purgecss.config.js에 defaultExtractor로 해당 키워드를 추출할 수 있게 해준다 (purgecss.config.js 참고)
+    그 후에 cli명령어에 --config ./purgecss.config.js를 추가하여 config파일을 연결 시켜준다.
