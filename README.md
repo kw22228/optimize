@@ -297,3 +297,87 @@ img.src =
      - 방법3. Data-URI로 변환하여 css파일에 직접 폰트 추가하기.
        - Transfonter의 Base64 encode부분을 체크한후에 WOFF2 파일을 변환한다.
        - Convert하고 css파일에 src 복붙
+
+### 캐시 최적화
+
+- 캐시란?
+
+  - 자주 사용하는 데이터나 값을 미리 복사해둔 임시 저장공간 또는 저장하는 동작이다.
+    웹에서는 이미지파일 또는 js파일 같은 리소스 파일을 최초에 한번만 다운받고 캐시에 저장해두고
+    이후 요청시에는 다시 다운받지않고 캐시에 저장된파일을 가져다 사용한다.
+
+- 캐시의 종류
+
+  - 메모리 캐시: 메모리에 저장하는 방식 (여기서 메모리는 RAM) 익스텐션의 Network탭의 Size에 memory cache라고 적힘.
+  - 디스크 캐시: 파일형태로 디스크에 저장하는 방식 (익스텐션의 Network탭의 Size에 disk cache라고 적힘.)
+  - 이 두 캐시는 직접 제어할 수 없고, 브라우저가 특정 알고리즘에 의해 알아서 처리함.
+
+- Cache-Control
+
+  - 리소스의 응답 헤더에 설정되는 헤더이다. 브라우저는 서버에서 이헤더를 통해 캐시를 어떻게, 얼마나 할지 판단한다.
+
+  - 옵션.
+
+    - no-cache : 캐시를 사용하기전 서버에 검사 후 사용. (캐시를 사용하지 않는게 아니라 캐시 사용전에 서버에 캐시된 리소스를 사용해도 되는지 한번 체크한 후 사용한다.)
+    - no-store : 캐시 사용 안함.
+    - public : 모든환경에서 캐시 사용 가능.
+    - private : 브라우저 환경에서만 캐시 사용가능. (외부 캐시 서버에서는 사용 불가.)
+    - max-age: 캐시의 유효 시간
+
+  - 옵션 추가 설명.
+
+    - public 과 private은 max-age에 설정한 시간만큼은 서버에 사용유무를 체크하지않고 바로 사용한다.
+      max-age의 유효시간이 지났다면, 서버에 캐시된 리소스를 사용하는지 다시 체크후 max-age시간만큼 다시 사용한다. (refresh token 같은 느낌?)
+    - public과 private의 차이는 캐시 환경에 차이가 있다. 미들 캐시 서버에 캐시를 적용하고 싶지 않다면 private을 사용하면 된다.
+
+  - 예시)
+
+    - Cache-Control: max-age=60 => 모든 환경에서 60초(1분)동안 캐시를 사용한다.
+    - Cache-Control: private, max-age=600 => 600초(10분)동안 브라우저에서만 캐시를 사용
+    - Cache-Control: public, max-age=0 => 0초 동안 캐시사용 (캐시가 생성되자마자 만료되기에 매번 캐시를 사용해도 되는지 확인을 한다. 즉, no-cache랑 같은 설정이다.)
+
+- 캐시된 리소스와 서버의 최신 리소스가 같은지 다른지 어떻게 체크할까?
+
+  - 캐시가 만료되면 브라우저는 캐시 리소스를 계속 사용해도 되는지 체크한다.
+    이때 서버는 캐시된 리소스의 응답 헤더에 있는 Etag값과 서버에 있는 최신 리소스의 Etag값을 비교하여 캐시된 리소스가 최신인지 아닌지 판단한다.
+    만약 서버에있는 리소스가 변햇다면 Etag값이 달라지고, 서버는 새로운 Etag값과 함께 최신 리소스를 브라우저로 다시 보내준다.
+
+- 적절한 캐시 유효 시간
+
+  - 앞에서 적용한 Cache-Control은 모든 리소스에 동일한 캐시 설정이 적용되어있어 비효율적이다.
+  - 일반적인 리소스 캐싱 주기
+
+    - HTML : no-cache설정을 적용한다. 항상 최신버전의 웹서비스를 제공하기 위함.
+      HTML이 캐시되면 이전 버전의 자바스크립트나 CSS를 로드하게 된다.
+    - Javascript 또는 CSS : 빌드된 js나 css는 파일명에 해시를 함께 가지고있다.
+      ex) main.bbaac28.chunk.js 즉, 코드가 변경되면 해시도 변경되어 완전히 다른파일이 된다.
+
+    - 정리
+      - HTML : no-cache
+      - JS, CSS, IMG : public, max-age=31536000
+
+```javascript
+const header = {
+  setHeaders: (res, path) => {
+    /** 캐시를 사용하지 않기 위한 코드 */
+    // res.setHeader('Cache-Control', 'private, no-cache, no-store, must-revalidate')
+    // res.setHeader('Expires', '-1')
+    // res.setHeader('Pragma', 'no-cache')
+
+    /** 캐시를 사용하기 위한 코드 */
+    res.setHeader('Cache-Control', 'max-age=10');
+
+    /** 캐시를 각각 다른파일 리소스에 적절한 유효시간을 주기 */
+    if (path.endsWith('.html')) {
+      /** HTML */
+      res.setHeader('Cache-Control', 'no-cache');
+    } else if (path.endsWith('.js') || path.endsWith('.css') || path.endsWith('.webp')) {
+      /** JS CSS WEBP */
+      res.setHeader('Cache-Control', 'public, max-age=31536000');
+    } else {
+      /** ANOTHER */
+      res.setHeader('Cache-Control', 'no-store');
+    }
+  },
+};
+```
