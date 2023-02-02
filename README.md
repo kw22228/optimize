@@ -410,3 +410,94 @@ const header = {
   - class명에 : 이나 - 같은 특수문자가 있는경우 키워드를 제대로 추출못할 수도 있다.
     그렇기 때문에 purgecss.config.js에 defaultExtractor로 해당 키워드를 추출할 수 있게 해준다 (purgecss.config.js 참고)
     그 후에 cli명령어에 --config ./purgecss.config.js를 추가하여 config파일을 연결 시켜준다.
+
+---
+
+### 이미지 갤러리 최적화
+
+- 이미지 지연 로딩 (라이브러리를 통한)
+- 레이아웃 이동 피하기
+- 리덕스 렌더링 최적화
+- 병목 코드 최적화 (로직과 메모이제이션을 사용)
+
+### 레이아웃 이동 피하기
+
+- 레이아웃 이동이란?
+
+  - 화면상의 요소 변화로 갑자기 레이아웃이 밀리는 현상
+
+- Cumulative Layout Shift (CLS)
+
+  - 웹페이지의 레이아웃 이동이 얼마나 발생하는지 보여주는 지표. (0 ~ 1)
+  - 권장 점수는 0.1 이하 이다.
+
+- 레이아웃 이동의 원인
+
+  - 사이즈가 미리 정의되지 않은 이미지 요소 (이미지 갤러리는 이 이슈로 Layout Shift가 발생함)
+  - 사이즈가 미리 정의되지 않은 광고 요소
+  - 동적으로 삽입된 콘텐츠
+  - 웹 폰트(FOIT, FOUT)
+
+- 레이아웃 이동 해결
+
+  - 레이아웃 이동을 일으키는 요소의 사이즈를 미리 지정해놓으면 됨
+  - 동적으로 크기가 정해지는 요소(반응형)의 경우 요소의 너비 높이의 비율로 공간을 잡아둔다.
+  - 이미지 크기를 비율로 설정하는 방법
+
+    - padding을 이용하여 박스를 만든뒤, 그안에 이미지를 absolute로 띄운다.
+
+    ```html
+    <div class="wrapper">
+      <img class="image" src="" />
+    </div>
+
+    <style>
+      .wrapper {
+        position: relative;
+        width: 160px;
+        padding-top: 56.25%; /* 16:9 비율 */
+        /* 1:1 비율이면 100% */
+      }
+      .image {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        top: 0;
+        left: 0;
+      }
+    </style>
+    ```
+
+    - aspect-ratio를 이용한 비율 계산 - 브라우저 호환성 문제가 있다. (비율에 따라 padding-top을 변화 시켜주는게 불편하여 새로 나옴)
+
+    ```css
+    .wrapper {
+      width: 100%;
+      aspect-ratio: 16 / 9;
+    }
+    .image {
+      width: 100%;
+      height: 100%;
+    }
+    ```
+
+### 이미지 지연 로딩 (react-lazyload)
+
+- Intersection Observer API말고 react-lazyload라는 라이브러리를 사용하여 이미지 지연 로딩을 해본다.
+- npm i react-lazyload
+- 장점은 컴포넌트 자체를 지연로딩 시킬 수 있다.
+
+```javascript
+import LazyLoad from 'react-lazyload';
+
+/** 해당 컴포넌트를 감싸주면 됨. */
+function Component() {
+  return (
+    <div>
+      <LazyLoad offset={1000}>
+        <img src="이미지주소" />
+      </LazyLoad>
+    </div>
+  );
+}
+```
