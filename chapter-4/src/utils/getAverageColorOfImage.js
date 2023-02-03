@@ -1,4 +1,10 @@
+/** 메모이제이션 캐쉬 저장소 */
+const cache = {};
+
 export function getAverageColorOfImage(imgElement) {
+  /** 메모이제이션으로 코드 최적화 하기 */
+  if (cache.hasOwnProperty(imgElement.src)) return cache[imgElement.src];
+
   const canvas = document.createElement('canvas');
   const context = canvas.getContext && canvas.getContext('2d');
   const averageColor = {
@@ -31,6 +37,9 @@ export function getAverageColorOfImage(imgElement) {
   averageColor.r = ~~(averageColor.r / count); // ~~ => convert to int
   averageColor.g = ~~(averageColor.g / count);
   averageColor.b = ~~(averageColor.b / count);
+
+  /** 메모이제이션으로 코드 최적화 하기 (cache에 property를 결과값 저장) */
+  cache[imgElement.src] = averageColor;
 
   return averageColor;
 }

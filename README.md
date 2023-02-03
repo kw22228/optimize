@@ -501,3 +501,68 @@ function Component() {
   );
 }
 ```
+
+### 리덕스 렌더링 최적화
+
+- 리액트의 렌더링
+
+  - 서비스의 상태가 변경되면 화면에 반영하기 위해 리렌더링 과정을 거친다.
+    그렇기 때문에 렌더링 시간이 오래걸리는 코드가 있거나 렌더링하지 않아도 되는 컴포넌트에서 불필요한 렌더링이 일어나면 메인스레드의 리소스를 차지하여 서비스 성능에 영향을 미친다.
+
+- React Developer Tools
+
+  - 리액트 컴포넌트에 대해 여러가지 기능이 있는 크롬 익스텐션 중에 하나이다.
+  - 설정에 Highlight updates when components render 를 체크하여 상태변경으로인해 리랜더링되는 컴포넌트들을 볼 수 있음.
+
+- 리렌더링의 원인
+
+  - 리덕스의 useSelector는 상태가 변하면 useSelector의 인자로 넣은 함수의 반환값이 변경했는지 비교하여 리렌더링을 진행한다.
+  - 하지만 함수의 반환값이 객체라면 객체의 메모리 주소가 계속 변하기 때문에 React는 이 참조타입이 변했다고 인지하고 리렌더링을 시킨다.
+
+- useSelector의 문제 해결.
+
+  - 객체를 새로 만들지 않도록 반환값을 나누는 방법.
+
+    - 객체를 묶어서 새로운 객체로 만들어서 반환하면 참조가 바뀌어 버리므로 객체를 반환하지 않는 형태로 useSelector를 나누는 방법. (ImageModalContainer 참조)
+
+  - Equality Function을 사용하는 방법.
+
+    - 리덕스의 옵션으로 넣는 함수이다.
+
+    - 이전 함수의 반환값과 현재 함수의 반환값을 비교하여 만약 두값이 동일하다면 리렌더링을 하지않고, 다르면 리렌더링을 한다.
+
+    - Equality Function은 직접 구현하여 넣을 수도 있고 리덕스에서 제공하는 함수를 사용할 수 있다.
+
+    - 예시 PhotoListContainer 참조.
+      - 여기서 category에 따라 filter하는 함수가 있다. 이 filter함수는 계속 새로운 배열을 return하니 Equality Function에서도 다른 반환값으로 판단한다.
+      - 해결법은 PhotoListContainer 참고
+
+### 병목 코드 최적화
+
+- 서비스를 이용하다가 느리거나 문제가 있다고 판단되는 부분을 찾아 Performance를 돌려본다.
+  이 프로젝트에서는 이미지 모달을 띄울때 느리다는 느낌이 든다.
+  이미지 모달부분의 Performance만 체크하기위해서 화면이 전부 로딩된 후 Performance의 ⚪버튼을 누른다음 모달을 띄운다. 그런다음 기록을 멈춘다. (필요에 따라 CPU throttling옵션을 설정)
+
+- 진행순서
+
+  1. Interaction type:click이 실행되고 이미지 모달이 뜨는순간 Network에서 이미지가 다운로드 된다.
+  2. 이미지가 다운로드 된 후 이미지가 로드된 후 getAverageColorOfImage 함수가 실행된다. (Image Decode 작업)
+  3. 해당작업이 끝난 후 Composite Layers가 되고 새롭게 렌더링 되면서 배경화면이 보인다.
+
+- 문제점 분석
+
+  - Performance로 분석해본 결과 getAverageColorOfImage함수를 실행할때가 느리다는걸 알 수 있다.
+  - 이미지의 평균 픽셀 값을 계산하는 함수로 캔버스에 큰 이미지를 통째로 올리고 반복문을 통해 가져온 픽셀 정보를 하나하나 더하고 있다는 점에서 느리다.
+
+- getAverageColorOfImage 리팩토링 하기
+
+  - 메모이제이션으로 코드 최적화 하기 (getAverageColorOfImage.js 참고)
+
+    - 메모이제이션을 사용하면 첫동작은 느리지만 다음동작부터는 메모이제이션을 이용하기 때문에 빠르게 실행된다.
+      즉, 첫동작은 여전히 느리기 때문에 충분히 반복될 가능성이 있는 동작에서만 사용해야한다.
+
+  - 함수의 로직 개선 (PhotoItem.js 참고)
+
+    - 현재 함수내에 Canvas API는 큰 이미지를 올리고 해당 이미지에서 픽셀 정보를 불러오는 작업때문에 아주 느리다. 그러므로 Canvas API가 작은 이미지를 추출하게 된다면 상대적으로 훨씬 빠른 작업이 될 것이다.
+
+    - 즉, getAverageColorOfImage로 보내는 imgElement값 (paramter)를 바꿔줘야한다.

@@ -1,15 +1,20 @@
 import React from 'react';
 import styled from 'styled-components';
 import { useDispatch } from 'react-redux';
-import { showModal } from '../redux/imageModal';
+import { setBgColor, showModal } from '../redux/imageModal';
 
 import LazyLoad from 'react-lazyload';
+import { getAverageColorOfImage } from '../utils/getAverageColorOfImage';
 
 function PhotoItem({ photo: { urls, alt } }) {
   const dispatch = useDispatch();
 
-  const openModal = () => {
+  const openModal = e => {
     dispatch(showModal({ src: urls.full, alt }));
+
+    /** 섬네일 이미지로 배경색 계산 후, 리덕스에 저장 (이쪽은 small이미지를 사용하고 있음.) */
+    const averageColor = getAverageColorOfImage(e.target);
+    dispatch(setBgColor(averageColor));
   };
 
   return (
@@ -18,7 +23,12 @@ function PhotoItem({ photo: { urls, alt } }) {
       <LazyLoad
         offset={1000} //1000px 위에서 로딩 시작
       >
-        <Image src={urls.small + '&t=' + new Date().getTime()} alt={alt} onClick={openModal} />
+        <Image //
+          src={urls.small + '&t=' + new Date().getTime()}
+          alt={alt}
+          onClick={openModal}
+          crossOrigin="*"
+        />
       </LazyLoad>
       {/* 컴포넌트 지연 로딩 */}
     </ImageWrap>

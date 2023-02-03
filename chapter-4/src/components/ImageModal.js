@@ -7,23 +7,28 @@ import { getAverageColorOfImage } from '../utils/getAverageColorOfImage';
 
 function ImageModal({ modalVisible, src, alt, bgColor }) {
   const dispatch = useDispatch();
-  const onLoadImage = e => {
-    const averageColor = getAverageColorOfImage(e.target);
-    dispatch(setBgColor(averageColor));
-  };
+
+  /** 여기서는 full image를 사용하고 있기때문에 photoItem에서 처리한다. */
+  // const onLoadImage = e => {
+  //   const averageColor = getAverageColorOfImage(e.target);
+  //   dispatch(setBgColor(averageColor));
+  // };
 
   const closeModal = () => {
     dispatch(hideModal());
   };
 
   return (
-    <Modal
-      modalVisible={modalVisible}
-      closeModal={closeModal}
-      bgColor={bgColor}
-    >
+    <Modal modalVisible={modalVisible} closeModal={closeModal} bgColor={bgColor}>
       <ImageWrap>
-        <FullImage crossOrigin="*" src={src} alt={alt} onLoad={onLoadImage} />
+        <FullImage //
+          crossOrigin="*"
+          src={src}
+          alt={alt}
+
+          /** 여기서는 full image를 사용하고 있기때문에 photoItem에서 처리한다. */
+          // onLoad={onLoadImage}
+        />
       </ImageWrap>
     </Modal>
   );
